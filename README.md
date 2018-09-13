@@ -248,7 +248,7 @@ LatestVersion is ![LatestVersion](https://api.bintray.com/packages/yuyakaido/mav
 
 ```groovy
 dependencies {
-    compile "com.yuyakaido.android:card-stack-view:${LatestVersion}"
+    implementation 'com.github.shynline:CardStackView:${LatestVersion}'
 }
 ```
 
