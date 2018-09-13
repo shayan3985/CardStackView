@@ -1,4 +1,4 @@
-package com.yuyakaido.android.cardstackview.sample;
+package com.shynline.android.cardstackview.sample;
 
 public class TouristSpot {
     public String name;

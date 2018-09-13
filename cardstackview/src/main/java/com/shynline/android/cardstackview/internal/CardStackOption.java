@@ -1,7 +1,8 @@
-package com.yuyakaido.android.cardstackview.internal;
+package com.shynline.android.cardstackview.internal;
 
-import com.yuyakaido.android.cardstackview.StackFrom;
-import com.yuyakaido.android.cardstackview.SwipeDirection;
+import com.shynline.android.cardstackview.StackFrom;
+import com.shynline.android.cardstackview.SwipeDirection;
+
 
 import java.util.List;
 

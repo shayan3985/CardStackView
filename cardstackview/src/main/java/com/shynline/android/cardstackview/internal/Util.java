@@ -1,4 +1,4 @@
-package com.yuyakaido.android.cardstackview.internal;
+package com.shynline.android.cardstackview.internal;
 
 import android.content.Context;
 import android.graphics.Point;

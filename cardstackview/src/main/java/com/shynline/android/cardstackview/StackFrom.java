@@ -1,4 +1,4 @@
-package com.yuyakaido.android.cardstackview;
+package com.shynline.android.cardstackview;
 
 public enum StackFrom {
     Bottom, Top;

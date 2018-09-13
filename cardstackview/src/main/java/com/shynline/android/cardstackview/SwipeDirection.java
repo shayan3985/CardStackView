@@ -1,4 +1,4 @@
-package com.yuyakaido.android.cardstackview;
+package com.shynline.android.cardstackview;
 
 import java.util.Arrays;
 import java.util.List;

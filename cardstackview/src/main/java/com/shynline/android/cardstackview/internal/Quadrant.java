@@ -1,4 +1,4 @@
-package com.yuyakaido.android.cardstackview.internal;
+package com.shynline.android.cardstackview.internal;
 
 public enum Quadrant {
     TopLeft, TopRight, BottomLeft, BottomRight

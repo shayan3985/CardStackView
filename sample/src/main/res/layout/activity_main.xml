@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.yuyakaido.android.cardstackview.CardStackView
+    <com.shynline.android.cardstackview.CardStackView
         android:id="@+id/activity_main_card_stack_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

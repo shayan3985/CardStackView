@@ -1,4 +1,4 @@
-package com.yuyakaido.android.cardstackview.sample;
+package com.shynline.android.cardstackview.sample;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
@@ -12,9 +12,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
-import com.yuyakaido.android.cardstackview.CardStackView;
-import com.yuyakaido.android.cardstackview.SwipeDirection;
+
+import com.shynline.android.cardstackview.CardStackView;
+import com.shynline.android.cardstackview.SwipeDirection;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -107,12 +109,13 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCardSwiped(SwipeDirection direction) {
+            public void onCardSwiped(SwipeDirection direction, int remaining) {
+                Log.d("CardStackView", "remaining card(s): " + remaining);
                 Log.d("CardStackView", "onCardSwiped: " + direction.toString());
                 Log.d("CardStackView", "topIndex: " + cardStackView.getTopIndex());
                 if (cardStackView.getTopIndex() == adapter.getCount() - 5) {
                     Log.d("CardStackView", "Paginate: " + cardStackView.getTopIndex());
-                    paginate();
+//                    paginate();
                 }
             }
 
@@ -128,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCardClicked(int index) {
-                Log.d("CardStackView", "onCardClicked: " + index);
+//                Log.d("CardStackView", "onCardClicked: " + index);
             }
         });
     }
@@ -148,8 +151,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private LinkedList<TouristSpot> extractRemainingTouristSpots() {
+        return extractRemainingTouristSpots(false);
+    }
+    private LinkedList<TouristSpot> extractRemainingTouristSpots(boolean includeLastSwiped) {
+        int index = cardStackView.getTopIndex();
+        if (includeLastSwiped){
+            index--;
+        }
+
         LinkedList<TouristSpot> spots = new LinkedList<>();
-        for (int i = cardStackView.getTopIndex(); i < adapter.getCount(); i++) {
+        for (int i =index;  i < adapter.getCount(); i++) {
             spots.add(adapter.getItem(i));
         }
         return spots;
@@ -160,15 +171,19 @@ public class MainActivity extends AppCompatActivity {
         spots.addFirst(createTouristSpot());
         adapter.clear();
         adapter.addAll(spots);
-        adapter.notifyDataSetChanged();
+        cardStackView.notifyDataSetChanged(false);
     }
 
     private void addLast() {
-        LinkedList<TouristSpot> spots = extractRemainingTouristSpots();
+        boolean shouldSkipOne = cardStackView.getTopIndex()!=0;
+        Toast.makeText(this, ""+shouldSkipOne, Toast.LENGTH_SHORT).show();
+
+        LinkedList<TouristSpot> spots = extractRemainingTouristSpots(shouldSkipOne);
         spots.addLast(createTouristSpot());
         adapter.clear();
         adapter.addAll(spots);
-        adapter.notifyDataSetChanged();
+        cardStackView.notifyDataSetChanged(shouldSkipOne);
+
     }
 
     private void removeFirst() {
@@ -180,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
         spots.removeFirst();
         adapter.clear();
         adapter.addAll(spots);
-        adapter.notifyDataSetChanged();
+        cardStackView.notifyDataSetChanged(false);
     }
 
     private void removeLast() {
@@ -192,13 +207,13 @@ public class MainActivity extends AppCompatActivity {
         spots.removeLast();
         adapter.clear();
         adapter.addAll(spots);
-        adapter.notifyDataSetChanged();
+        cardStackView.notifyDataSetChanged(false);
     }
 
     private void paginate() {
         cardStackView.setPaginationReserved();
         adapter.addAll(createTouristSpots());
-        adapter.notifyDataSetChanged();
+        cardStackView.notifyDataSetChanged(false);
     }
 
     public void swipeLeft() {

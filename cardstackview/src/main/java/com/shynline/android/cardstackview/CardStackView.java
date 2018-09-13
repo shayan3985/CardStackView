@@ -1,4 +1,4 @@
-package com.yuyakaido.android.cardstackview;
+package com.shynline.android.cardstackview;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -8,61 +8,40 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.database.DataSetObserver;
 import android.graphics.Point;
-import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 
-import com.yuyakaido.android.cardstackview.internal.CardContainerView;
-import com.yuyakaido.android.cardstackview.internal.CardStackOption;
-import com.yuyakaido.android.cardstackview.internal.CardStackState;
-import com.yuyakaido.android.cardstackview.internal.Util;
+import com.shynline.android.cardstackview.internal.CardContainerView;
+import com.shynline.android.cardstackview.internal.CardStackOption;
+import com.shynline.android.cardstackview.internal.CardStackState;
+import com.shynline.android.cardstackview.internal.Util;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public class CardStackView extends FrameLayout {
 
-    public interface CardEventListener {
-        void onCardDragging(float percentX, float percentY);
-        void onCardSwiped(SwipeDirection direction);
-        void onCardReversed();
-        void onCardMovedToOrigin();
-        void onCardClicked(int index);
-    }
-
     private CardStackOption option = new CardStackOption();
     private CardStackState state = new CardStackState();
-
     private BaseAdapter adapter = null;
     private LinkedList<CardContainerView> containers = new LinkedList<>();
     private CardEventListener cardEventListener = null;
-    private DataSetObserver dataSetObserver = new DataSetObserver() {
-        @Override
-        public void onChanged() {
-            boolean shouldReset = false;
-            if (state.isPaginationReserved) {
-                state.isPaginationReserved = false;
-            } else {
-                boolean isSameCount = state.lastCount == adapter.getCount();
-                shouldReset = !isSameCount;
-            }
-            initialize(shouldReset);
-            state.lastCount = adapter.getCount();
-        }
-    };
     private CardContainerView.ContainerEventListener containerEventListener = new CardContainerView.ContainerEventListener() {
         @Override
         public void onContainerDragging(float percentX, float percentY) {
             update(percentX, percentY);
         }
+
         @Override
         public void onContainerSwiped(Point point, SwipeDirection direction) {
             swipe(point, direction);
         }
+
         @Override
         public void onContainerMovedToOrigin() {
             initializeCardStackPosition();
@@ -70,11 +49,18 @@ public class CardStackView extends FrameLayout {
                 cardEventListener.onCardMovedToOrigin();
             }
         }
+
         @Override
         public void onContainerClicked() {
             if (cardEventListener != null) {
                 cardEventListener.onCardClicked(state.topIndex);
             }
+        }
+    };
+    private DataSetObserver dataSetObserver = new DataSetObserver() {
+        @Override
+        public void onChanged() {
+//            notifyDataSetChanged(false);
         }
     };
 
@@ -106,6 +92,23 @@ public class CardStackView extends FrameLayout {
     }
 
     @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        return super.onInterceptTouchEvent(ev);
+    }
+
+    public void notifyDataSetChanged(boolean skipOne) {
+        boolean shouldReset = false;
+        if (state.isPaginationReserved) {
+            state.isPaginationReserved = false;
+        } else {
+            boolean isSameCount = state.lastCount == adapter.getCount();
+            shouldReset = !isSameCount;
+        }
+        initialize(shouldReset, skipOne);
+        state.lastCount = adapter.getCount();
+    }
+
+    @Override
     protected void onWindowVisibilityChanged(int visibility) {
         super.onWindowVisibilityChanged(visibility);
         if (state.isInitialized && visibility == View.VISIBLE) {
@@ -113,14 +116,20 @@ public class CardStackView extends FrameLayout {
         }
     }
 
-    private void initialize(boolean shouldReset) {
-        resetIfNeeded(shouldReset);
+    private void initialize(boolean shouldReset, boolean skipOne) {
+        Point lastPoint = state.lastPoint;
+        resetIfNeeded(shouldReset, skipOne);
         initializeViews();
+
         initializeCardStackPosition();
         initializeViewContents();
+        if (skipOne) {
+            executePostSwipeTask(lastPoint, SwipeDirection.Top, true);
+        }
+
     }
 
-    private void resetIfNeeded(boolean shouldReset) {
+    private void resetIfNeeded(boolean shouldReset, boolean skipOne) {
         if (shouldReset) {
             state.reset();
         }
@@ -129,7 +138,6 @@ public class CardStackView extends FrameLayout {
     private void initializeViews() {
         removeAllViews();
         containers.clear();
-
         for (int i = 0; i < option.visibleCount; i++) {
             CardContainerView view = (CardContainerView) LayoutInflater.from(getContext())
                     .inflate(R.layout.card_container, this, false);
@@ -198,11 +206,11 @@ public class CardStackView extends FrameLayout {
         for (int i = 0; i < option.visibleCount; i++) {
             CardContainerView view = containers.get(i);
             view.reset();
-            ViewCompat.setTranslationX(view, 0f);
-            ViewCompat.setTranslationY(view, 0f);
-            ViewCompat.setScaleX(view, 1f);
-            ViewCompat.setScaleY(view, 1f);
-            ViewCompat.setRotation(view, 0f);
+            view.setTranslationX(0f);
+            view.setTranslationY(0f);
+            view.setScaleX(1f);
+            view.setScaleY(1f);
+            view.setRotation(0f);
         }
     }
 
@@ -221,8 +229,9 @@ public class CardStackView extends FrameLayout {
             float currentScale = 1f - (i * option.scaleDiff);
             float nextScale = 1f - ((i - 1) * option.scaleDiff);
             float percent = currentScale + (nextScale - currentScale) * Math.abs(percentX);
-            ViewCompat.setScaleX(view, percent);
-            ViewCompat.setScaleY(view, percent);
+            view.setScaleX(percent);
+            view.setScaleY(percent);
+
 
             float currentTranslationY = i * Util.toPx(getContext(), option.translationDiff);
             if (option.stackFrom == StackFrom.Top) {
@@ -235,15 +244,15 @@ public class CardStackView extends FrameLayout {
             }
 
             float translationY = currentTranslationY - Math.abs(percentX) * (currentTranslationY - nextTranslationY);
-            ViewCompat.setTranslationY(view, translationY);
+            view.setTranslationY(translationY);
         }
     }
 
     public void performReverse(Point point, View prevView, final Animator.AnimatorListener listener) {
         reorderForReverse(prevView);
         CardContainerView topView = getTopView();
-        ViewCompat.setTranslationX(topView, point.x);
-        ViewCompat.setTranslationY(topView, -point.y);
+        topView.setTranslationX(point.x);
+        topView.setTranslationY(-point.y);
         topView.animate()
                 .translationX(topView.getViewOriginX())
                 .translationY(topView.getViewOriginY())
@@ -267,15 +276,15 @@ public class CardStackView extends FrameLayout {
             getTopView().showLeftOverlay();
         } else if (showOverlay = direction == SwipeDirection.Right) {
             getTopView().showRightOverlay();
-        } else if (showOverlay = direction == SwipeDirection.Bottom){
+        } else if (showOverlay = direction == SwipeDirection.Bottom) {
             getTopView().showBottomOverlay();
-        } else if (showOverlay = direction == SwipeDirection.Top){
+        } else if (showOverlay = direction == SwipeDirection.Top) {
             getTopView().showTopOverlay();
         } else {
             showOverlay = false;
         }
-        if(showOverlay) {
-            if(overlayAnimatorSet != null) {
+        if (showOverlay) {
+            if (overlayAnimatorSet != null) {
                 getTopView().setOverlayAlpha(overlayAnimatorSet);
             } else {
                 getTopView().setOverlayAlpha(1f);
@@ -334,7 +343,7 @@ public class CardStackView extends FrameLayout {
         }
     }
 
-    private void executePostSwipeTask(Point point, SwipeDirection direction) {
+    private void executePostSwipeTask(Point point, SwipeDirection direction, boolean silent) {
         reorderForSwipe();
 
         state.lastPoint = point;
@@ -343,14 +352,20 @@ public class CardStackView extends FrameLayout {
 
         state.topIndex++;
 
-        if (cardEventListener != null) {
-            cardEventListener.onCardSwiped(direction);
-        }
 
         loadNextView();
 
         containers.getLast().setContainerEventListener(null);
+        containers.getLast().setDraggable(false);
         containers.getFirst().setContainerEventListener(containerEventListener);
+        containers.getFirst().setDraggable(true);
+
+        if (!silent) {
+            if (cardEventListener != null) {
+                int remaining = adapter.getCount() - state.topIndex;
+                cardEventListener.onCardSwiped(direction,remaining);
+            }
+        }
     }
 
     private void executePostReverseTask() {
@@ -381,90 +396,90 @@ public class CardStackView extends FrameLayout {
         this.adapter = adapter;
         this.adapter.registerDataSetObserver(dataSetObserver);
         this.state.lastCount = adapter.getCount();
-        initialize(true);
+        initialize(true, false);
     }
 
     public void setVisibleCount(int visibleCount) {
         option.visibleCount = visibleCount;
         if (adapter != null) {
-            initialize(false);
+            initialize(false, false);
         }
     }
 
     public void setSwipeThreshold(float swipeThreshold) {
         option.swipeThreshold = swipeThreshold;
         if (adapter != null) {
-            initialize(false);
+            initialize(false, false);
         }
     }
 
     public void setTranslationDiff(float translationDiff) {
         option.translationDiff = translationDiff;
         if (adapter != null) {
-            initialize(false);
+            initialize(false, false);
         }
     }
 
     public void setScaleDiff(float scaleDiff) {
         option.scaleDiff = scaleDiff;
         if (adapter != null) {
-            initialize(false);
+            initialize(false, false);
         }
     }
 
     public void setStackFrom(StackFrom stackFrom) {
         option.stackFrom = stackFrom;
         if (adapter != null) {
-            initialize(false);
+            initialize(false, false);
         }
     }
 
     public void setElevationEnabled(boolean isElevationEnabled) {
         option.isElevationEnabled = isElevationEnabled;
         if (adapter != null) {
-            initialize(false);
+            initialize(false, false);
         }
     }
 
     public void setSwipeEnabled(boolean isSwipeEnabled) {
         option.isSwipeEnabled = isSwipeEnabled;
         if (adapter != null) {
-            initialize(false);
+            initialize(false, false);
         }
     }
 
     public void setSwipeDirection(List<SwipeDirection> swipeDirection) {
         option.swipeDirection = swipeDirection;
         if (adapter != null) {
-            initialize(false);
+            initialize(false, false);
         }
     }
 
     public void setLeftOverlay(int leftOverlay) {
         option.leftOverlay = leftOverlay;
         if (adapter != null) {
-            initialize(false);
+            initialize(false, false);
         }
     }
 
     public void setRightOverlay(int rightOverlay) {
         option.rightOverlay = rightOverlay;
         if (adapter != null) {
-            initialize(false);
+            initialize(false, false);
         }
     }
 
     public void setBottomOverlay(int bottomOverlay) {
         option.bottomOverlay = bottomOverlay;
         if (adapter != null) {
-            initialize(false);
+            initialize(false, false);
         }
     }
 
     public void setTopOverlay(int topOverlay) {
         option.topOverlay = topOverlay;
         if (adapter != null) {
-            initialize(false);
+            initialize(false, false);
         }
     }
 
@@ -477,7 +492,7 @@ public class CardStackView extends FrameLayout {
         performSwipe(point, new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animator) {
-                executePostSwipeTask(point, direction);
+                executePostSwipeTask(point, direction, false);
             }
         });
     }
@@ -491,7 +506,7 @@ public class CardStackView extends FrameLayout {
         performSwipe(direction, cardAnimatorSet, overlayAnimatorSet, new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animator) {
-                executePostSwipeTask(new Point(0, -2000), direction);
+                executePostSwipeTask(new Point(0, -2000), direction, false);
             }
         });
     }
@@ -519,6 +534,19 @@ public class CardStackView extends FrameLayout {
 
     public int getTopIndex() {
         return state.topIndex;
+    }
+
+    public interface CardEventListener {
+        void onCardDragging(float percentX, float percentY);
+
+        void onCardSwiped(SwipeDirection direction , int remainingCard);
+
+        void onCardReversed();
+
+        void onCardMovedToOrigin();
+
+        void onCardClicked(int index);
+
     }
 
 }

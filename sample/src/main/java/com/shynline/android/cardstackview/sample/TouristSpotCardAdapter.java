@@ -1,4 +1,4 @@
-package com.yuyakaido.android.cardstackview.sample;
+package com.shynline.android.cardstackview.sample;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
@@ -29,11 +30,17 @@ public class TouristSpotCardAdapter extends ArrayAdapter<TouristSpot> {
             holder = (ViewHolder) contentView.getTag();
         }
 
-        TouristSpot spot = getItem(position);
+        final TouristSpot spot = getItem(position);
 
         holder.name.setText(spot.name);
         holder.city.setText(spot.city);
         Glide.with(getContext()).load(spot.url).into(holder.image);
+        holder.image.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getContext(), ""+spot.name, Toast.LENGTH_SHORT).show();
+            }
+        });
 
         return contentView;
     }
@@ -44,9 +51,9 @@ public class TouristSpotCardAdapter extends ArrayAdapter<TouristSpot> {
         public ImageView image;
 
         public ViewHolder(View view) {
-            this.name = (TextView) view.findViewById(R.id.item_tourist_spot_card_name);
-            this.city = (TextView) view.findViewById(R.id.item_tourist_spot_card_city);
-            this.image = (ImageView) view.findViewById(R.id.item_tourist_spot_card_image);
+            this.name = view.findViewById(R.id.item_tourist_spot_card_name);
+            this.city = view.findViewById(R.id.item_tourist_spot_card_city);
+            this.image = view.findViewById(R.id.item_tourist_spot_card_image);
         }
     }
 
