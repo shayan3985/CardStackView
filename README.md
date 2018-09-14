@@ -244,7 +244,7 @@ CardStackView#setSwipeThreshold(0.75f);
 
 ```groovy
 dependencies {
-    implementation 'com.github.shynline:CardStackView:v2.0.0'
+    implementation 'com.github.shynline:CardStackView:2.0.1'
 }
 ```
 
