@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCardSwiped(SwipeDirection direction, int remaining) {
+            public void onCardSwiped(SwipeDirection direction,long swipedIndex ,int remaining) {
                 Log.d("CardStackView", "remaining card(s): " + remaining);
                 Log.d("CardStackView", "onCardSwiped: " + direction.toString());
                 Log.d("CardStackView", "topIndex: " + cardStackView.getTopIndex());

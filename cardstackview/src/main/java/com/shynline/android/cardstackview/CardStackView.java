@@ -362,8 +362,9 @@ public class CardStackView extends FrameLayout {
 
         if (!silent) {
             if (cardEventListener != null) {
+                int swipedIndex = state.topIndex - 1;
                 int remaining = adapter.getCount() - state.topIndex;
-                cardEventListener.onCardSwiped(direction,remaining);
+                cardEventListener.onCardSwiped(direction,swipedIndex,remaining);
             }
         }
     }
@@ -539,7 +540,7 @@ public class CardStackView extends FrameLayout {
     public interface CardEventListener {
         void onCardDragging(float percentX, float percentY);
 
-        void onCardSwiped(SwipeDirection direction , int remainingCard);
+        void onCardSwiped(SwipeDirection direction ,long dataSetIndex, int remainingCard);
 
         void onCardReversed();
 
