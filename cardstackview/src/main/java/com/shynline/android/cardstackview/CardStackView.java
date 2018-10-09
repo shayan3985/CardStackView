@@ -158,6 +158,24 @@ public class CardStackView extends FrameLayout {
         update(0f, 0f);
     }
 
+    public void updateView() {
+        for (int i = 0; i < option.visibleCount; i++) {
+            CardContainerView container = containers.get(i);
+            if (container.getVisibility() == VISIBLE) {
+                int adapterIndex = state.topIndex + i;
+
+                ViewGroup parent = container.getContentContainer();
+                View child = adapter.getView(adapterIndex, parent.getChildAt(0), parent);
+                if (parent.getChildCount() == 0) {
+                    parent.addView(child);
+                }
+            } else {
+                break;
+            }
+
+        }
+    }
+
     private void initializeViewContents() {
         for (int i = 0; i < option.visibleCount; i++) {
             CardContainerView container = containers.get(i);

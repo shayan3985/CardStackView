@@ -14,11 +14,11 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-
 import com.shynline.android.cardstackview.CardStackView;
 import com.shynline.android.cardstackview.SwipeDirection;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -67,7 +67,17 @@ public class MainActivity extends AppCompatActivity {
                 swipeRight();
                 break;
             case R.id.menu_activity_main_reverse:
-                reverse();
+//                reverse();
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.getItem(0).name = "new text " + new Date().toString();
+                        cardStackView.updateView();
+                        handler.postDelayed(this, 1000);
+                    }
+                }, 1000);
+
                 break;
         }
         return super.onOptionsItemSelected(item);
